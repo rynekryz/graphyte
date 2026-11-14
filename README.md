@@ -4,6 +4,13 @@
 <p>Open-source maps app for Android, powered by OpenStreetMap</p>
 <p>No API keys. No accounts. No tracking. Just maps.</p>
 </div>
+<p align="center">
+  <a href="https://github.com/rynekryz/rynemaps/stargazers"><img src="https://img.shields.io/github/stars/rynekryz/rynemaps?style=flat&logo=github&labelColor=5F5E5E&color=5F5E5E&logoColor=white&sort=semver" alt="GitHub stars" height="30"/></a>
+  <a href="https://github.com/rynekryz/rynemaps/tags"><img src="https://img.shields.io/github/v/tag/rynekryz/rynemaps?style=flat&logo=git&labelColor=5F5E5E&color=5F5E5E&logoColor=white&sort=semver" alt="Latest release" height="30"/></a>
+  <a href="LICENSE"><img src="assets/badges/licencegplv3.svg" alt="Licence GPLv3"/></a>
+  <img src="assets/badges/android.svg" alt="Android"/>
+  <img src="assets/badges/kotlin.svg" alt="Kotlin"/>
+</p>
 
 ## Building the APK
 
@@ -34,10 +41,6 @@ echo "sdk.dir=$HOME/Android/Sdk" > local.properties
 ```
 
 ## Screenshots
-
-<!-- TODO: add screenshots here, e.g.:
-<img src="/Screenshots/01.png" width="30%" />
--->
 
 ## Features
 
@@ -80,6 +83,6 @@ Licensed under GPL-3.0. See [LICENSE](LICENSE) for details.
 <strong>Made by Ryne</strong>
 </div>
 <div align="center">
-  <a href="DISCORD_INVITE"><img src="https://img.shields.io/badge/Discord-5A5A5A?style=for-the-badge&logo=discord&logoColor=white"/></a>
-  <a href="https://tiktok.com/@rynekryz"><img src="https://img.shields.io/badge/TikTok-5A5A5A?style=for-the-badge&logo=tiktok&logoColor=white"/></a>
+  <a href="https://discord.gg/YKhWXXhKmC"><img src="assets/badges/discord.svg" alt="Discord"/></a>
+  <a href="https://tiktok.com/@rynekryz"><img src="assets/badges/tiktok.svg" alt="TikTok"/></a>
 </div>
