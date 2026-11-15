@@ -34,6 +34,14 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="geo" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="openstreetmap.org" />
+                <data android:scheme="https" android:host="www.openstreetmap.org" />
+                <data android:scheme="https" android:host="m.openstreetmap.org" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

@@ -5,6 +5,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.util.Locale
@@ -100,6 +101,26 @@ object Api {
             subtitle = if (o.str("name").isNotBlank()) kind else "",
             address = o.str("display_name"),
             point = p,
+            icon = iconFor(o.str("category"), o.str("type")),
+        )
+    }
+
+    suspend fun lookupOsm(id: String): Place {
+        val url = "https://nominatim.openstreetmap.org/lookup".toHttpUrl().newBuilder()
+            .addQueryParameter("osm_ids", id)
+            .addQueryParameter("format", "jsonv2")
+            .build()
+        val arr = JSONArray(fetch(Request.Builder().url(url).build()))
+        if (arr.length() == 0) throw IOException("Not found")
+        val o = arr.getJSONObject(0)
+        val point = GeoPoint(o.getDouble("lat"), o.getDouble("lon"))
+        val kind = o.str("type").replace('_', ' ').replaceFirstChar { it.uppercase() }
+        return Place(
+            id = "osm:$id",
+            name = o.str("name").ifBlank { o.str("display_name") },
+            subtitle = if (o.str("name").isNotBlank()) kind else "",
+            address = o.str("display_name"),
+            point = point,
             icon = iconFor(o.str("category"), o.str("type")),
         )
     }

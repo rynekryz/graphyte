@@ -617,6 +617,7 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun openUri(uri: Uri) {
+        if (uri.scheme == "https" && uri.host.orEmpty().endsWith("openstreetmap.org")) return openOsmLink(uri)
         if (uri.scheme != "geo") return
         val ssp = uri.schemeSpecificPart.orEmpty()
         val coords = ssp.substringBefore('?').substringBefore(';').split(',')
@@ -631,6 +632,41 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
             resolveAddress(p, replaceName = label.isBlank())
         } else if (!q.isNullOrBlank()) {
             openSearch(SearchTarget.Main, q)
+        }
+    }
+
+    private fun openOsmLink(uri: Uri) {
+        val frag = uri.fragment.orEmpty()
+        val f = if (frag.startsWith("map=")) frag.removePrefix("map=").split('/') else emptyList()
+        val lat = f.getOrNull(1)?.toDoubleOrNull()
+        val lon = f.getOrNull(2)?.toDoubleOrNull()
+        val mlat = uri.getQueryParameter("mlat")?.toDoubleOrNull()
+        val mlon = uri.getQueryParameter("mlon")?.toDoubleOrNull()
+        val point = when {
+            lat != null && lon != null && (lat != 0.0 || lon != 0.0) -> GeoPoint(lat, lon)
+            mlat != null && mlon != null -> GeoPoint(mlat, mlon)
+            else -> null
+        }
+        if (point != null) {
+            val p = Place("osm:${point.lat},${point.lon}", "Dropped pin", "", "", point)
+            selectPlace(p)
+            resolveAddress(p, replaceName = true)
+            return
+        }
+        val m = Regex("^(?:node|way|relation)/(\\d+)").find(uri.path.orEmpty().trimStart('/'))
+        if (m == null) {
+            _toasts.tryEmit("Couldn't open that link.")
+            return
+        }
+        val prefix = when (uri.path.orEmpty().trimStart('/').substringBefore('/')) {
+            "node" -> "N"
+            "way" -> "W"
+            else -> "R"
+        }
+        viewModelScope.launch {
+            runCatching { Api.lookupOsm(prefix + m.groupValues[1]) }
+                .onSuccess { selectPlace(it) }
+                .onFailure { _toasts.tryEmit("Couldn't open that link.") }
         }
     }
 }
