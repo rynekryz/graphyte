@@ -114,12 +114,12 @@ fun SearchPill(
                 transitionSpec = {
                     fadeIn(animationSpec = tween(700)) togetherWith fadeOut(animationSpec = tween(700))
                 },
+                modifier = Modifier.weight(1f),
                 label = "search-pill-text",
             ) { hello ->
                 if (hello) {
                     Text(
                         "Graphyte",
-                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -127,7 +127,6 @@ fun SearchPill(
                 } else {
                     Text(
                         "Search here",
-                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

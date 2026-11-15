@@ -2,6 +2,7 @@
 
 package com.rynekryz.graphyte.ui
 
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.core.Spring
@@ -11,10 +12,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.rynekryz.graphyte.data.MapStyleOption
 import com.rynekryz.graphyte.ui.theme.Symbol
 
@@ -86,6 +92,39 @@ fun LayersSheet(current: MapStyleOption, onSelect: (MapStyleOption) -> Unit, onD
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AttributionSheet(onDismiss: () -> Unit) {
+    val haptics = rememberHaptics()
+    val context = LocalContext.current
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberBottomSheetState(SheetValue.Hidden)) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
+            Text("Data sources", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(12.dp))
+            listOf(
+                "map" to "Map data © OpenStreetMap contributors",
+                "layers" to "Tiles by OpenFreeMap and CARTO",
+                "search" to "Search by Photon, addresses by Nominatim",
+                "route" to "Routing by OSRM",
+            ).forEach { (icon, text) ->
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Symbol(icon, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(14.dp))
+                    Text(text, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            TextButton(onClick = {
+                haptics.click()
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, "https://www.openstreetmap.org/copyright".toUri()))
+                }
+            }) { Text("OpenStreetMap copyright") }
         }
     }
 }

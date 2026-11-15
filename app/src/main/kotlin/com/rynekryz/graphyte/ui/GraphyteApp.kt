@@ -60,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -96,6 +97,7 @@ fun GraphyteApp(vm: MapViewModel) {
     var bearing by remember { mutableFloatStateOf(0f) }
     var sheetHeight by remember { mutableIntStateOf(0) }
     var showAbout by remember { mutableStateOf(false) }
+    var showAttribution by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showLocationPrompt by remember { mutableStateOf(false) }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -164,9 +166,9 @@ fun GraphyteApp(vm: MapViewModel) {
             following = state.following,
             lastCamera = lastCamera,
             commands = vm.camera,
-            attributionBottomPx = sheetHeight,
             routeColor = MaterialTheme.colorScheme.primary,
             pinColor = MaterialTheme.colorScheme.error,
+            locationColor = MaterialTheme.colorScheme.primary,
             rotateGestures = settings.rotateGestures,
             tiltGestures = settings.tiltGestures,
             onTap = vm::onMapTap,
@@ -349,6 +351,20 @@ fun GraphyteApp(vm: MapViewModel) {
                 onMyLocation = vm::pickMyLocation,
             )
         }
+
+        IconButton(
+            onClick = { haptics.tick(); showAttribution = true },
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = with(LocalDensity.current) { sheetHeight.toDp() } + 12.dp)
+                .padding(start = 12.dp),
+        ) {
+            Symbol("info", size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+
+    if (showAttribution) {
+        AttributionSheet(onDismiss = { showAttribution = false })
     }
 
     if (state.layersOpen) {

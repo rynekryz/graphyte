@@ -135,9 +135,9 @@ fun GraphyteView(
     following: Boolean,
     lastCamera: LastCamera?,
     commands: Flow<CameraCommand>,
-    attributionBottomPx: Int,
     routeColor: Color,
     pinColor: Color,
+    locationColor: Color,
     rotateGestures: Boolean = true,
     tiltGestures: Boolean = true,
     onTap: (MapTap) -> Unit,
@@ -244,8 +244,7 @@ fun GraphyteView(
             holder.map = map
             map.uiSettings.isLogoEnabled = false
             map.uiSettings.isCompassEnabled = false
-            map.uiSettings.isAttributionEnabled = true
-            map.uiSettings.attributionGravity = Gravity.BOTTOM or Gravity.START
+            map.uiSettings.isAttributionEnabled = false
             map.uiSettings.isRotateGesturesEnabled = rotateNow
             map.uiSettings.isTiltGesturesEnabled = tiltNow
             map.setMinZoomPreference(2.0)
@@ -336,20 +335,28 @@ fun GraphyteView(
         editStyle { it.getSourceAs<GeoJsonSource>(SELECTED_SRC)?.setGeoJson(json) }
     }
 
-    LaunchedEffect(attributionBottomPx, mapReady) {
-        holder.map?.uiSettings?.setAttributionMargins((12 * density).toInt(), 0, 0, attributionBottomPx + (4 * density).toInt())
-    }
-
-    LaunchedEffect(styleVersion, hasPermission) {
+    LaunchedEffect(styleVersion, hasPermission, locationColor) {
         val map = holder.map ?: return@LaunchedEffect
         val style = holder.style ?: return@LaunchedEffect
         if (!hasPermission || styleInFlight) return@LaunchedEffect
         runCatching {
+            val color = locationColor.toArgb()
+            val options = LocationComponentOptions.builder(context)
+                .pulseEnabled(true)
+                .pulseColor(color)
+                .accuracyAlpha(0.14f)
+                .accuracyColor(color)
+                .backgroundTintColor(color)
+                .build()
             val lc = map.locationComponent
+            if (lc.isLocationComponentActivated) {
+                lc.applyStyle(options)
+                return@runCatching
+            }
             lc.activateLocationComponent(
                 LocationComponentActivationOptions.builder(context, style)
                     .useDefaultLocationEngine(false)
-                    .locationComponentOptions(LocationComponentOptions.builder(context).pulseEnabled(true).build())
+                    .locationComponentOptions(options)
                     .build()
             )
             lc.isLocationComponentEnabled = true
