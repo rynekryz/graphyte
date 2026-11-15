@@ -39,7 +39,7 @@ class SettingsStore(private val context: Context) {
         val style = runCatching { MapStyleOption.valueOf(o.getString("mapStyle")) }.getOrNull()
         val name = o.optString("name", "").take(24)
         return Settings(
-            name = if (name == "Ryne") "" else name,
+            name = name,
             voice = o.optBoolean("voice", true),
             keepScreenOn = o.optBoolean("keepScreenOn", true),
             units = units,
