@@ -98,6 +98,7 @@ fun GraphyteApp(vm: MapViewModel) {
     var sheetHeight by remember { mutableIntStateOf(0) }
     var showAbout by remember { mutableStateOf(false) }
     var showAttribution by remember { mutableStateOf(false) }
+    var showLicenses by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showLocationPrompt by remember { mutableStateOf(false) }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -147,6 +148,7 @@ fun GraphyteApp(vm: MapViewModel) {
     BackHandler(enabled = state.canGoBack) { vm.back() }
     BackHandler(enabled = state.layersOpen) { vm.showLayers(false) }
     BackHandler(enabled = showSettings) { showSettings = false }
+    BackHandler(enabled = showLicenses) { showLicenses = false }
 
     val styleOption = settings.mapStyle ?: if (dark && settings.autoNight) MapStyleOption.Night else MapStyleOption.Default
     val styleUrl = styleOption.url
@@ -416,7 +418,27 @@ fun GraphyteApp(vm: MapViewModel) {
                 showSettings = false
                 showAbout = true
             },
+            onLicenses = {
+                showSettings = false
+                showLicenses = true
+            },
         )
+    }
+    AnimatedVisibility(
+        visible = showLicenses,
+        enter = slideInVertically(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+            initialOffsetY = { it },
+        ) + fadeIn(),
+        exit = slideOutVertically(
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            targetOffsetY = { it },
+        ) + fadeOut(),
+    ) {
+        LicensesScreen(onBack = { showLicenses = false })
     }
     if (showAbout) AboutDialog { showAbout = false }
     if (showLocationPrompt) {

@@ -287,6 +287,7 @@ fun SettingsScreen(
     onClearRecents: () -> Unit,
     onClearSaved: () -> Unit,
     onAbout: () -> Unit,
+    onLicenses: () -> Unit,
 ) {
     val haptics = rememberHaptics()
     val context = LocalContext.current
@@ -519,6 +520,13 @@ fun SettingsScreen(
                     subtitle = "v$versionName · by Ryne",
                     roundingType = RoundingType.TOP,
                     onClick = onAbout,
+                )
+                SettingsRow(
+                    "gavel",
+                    "Open source licenses",
+                    subtitle = "Licenses of everything the app uses",
+                    roundingType = RoundingType.MIDDLE,
+                    onClick = onLicenses,
                 )
                 SettingsRow(
                     "balance",

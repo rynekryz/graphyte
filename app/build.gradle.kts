@@ -18,8 +18,8 @@ android {
         applicationId = "com.rynekryz.graphyte"
         minSdk = 31
         targetSdk = 37
-        versionCode = 6
-        versionName = "1.1.2"
+        versionCode = 7
+        versionName = "1.1.3"
     }
 
     signingConfigs {
