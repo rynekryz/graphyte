@@ -23,7 +23,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -37,7 +38,7 @@ import com.rynekryz.graphyte.ui.theme.Symbol
 @Composable
 fun LayersSheet(current: MapStyleOption, onSelect: (MapStyleOption) -> Unit, onDismiss: () -> Unit) {
     val haptics = rememberHaptics()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState()) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberBottomSheetState(SheetValue.Hidden)) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
             Text("Map type", style = MaterialTheme.typography.titleLarge)
             Row(

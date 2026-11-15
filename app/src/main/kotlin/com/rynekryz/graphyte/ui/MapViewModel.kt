@@ -80,7 +80,6 @@ data class NavState(
 
 data class UiState(
     val tab: Tab = Tab.Explore,
-    val mapStyle: MapStyleOption? = null,
     val layersOpen: Boolean = false,
     val location: Location? = null,
     val hasPermission: Boolean = false,
@@ -184,6 +183,16 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setTheme(theme: ThemeMode) = updateSettings { it.copy(theme = theme) }
 
+    fun setHaptics(on: Boolean) = updateSettings { it.copy(haptics = on) }
+
+    fun setRotateGestures(on: Boolean) = updateSettings { it.copy(rotateGestures = on) }
+
+    fun setTiltGestures(on: Boolean) = updateSettings { it.copy(tiltGestures = on) }
+
+    fun setAutoNight(on: Boolean) = updateSettings { it.copy(autoNight = on) }
+
+    fun completeOobe() = updateSettings { it.copy(oobeDone = true) }
+
     private fun updateSettings(transform: (Settings) -> Settings) {
         val next = transform(_settings.value)
         _settings.value = next
@@ -260,7 +269,10 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
 
     fun showLayers(open: Boolean) = _state.update { it.copy(layersOpen = open) }
 
-    fun setMapStyle(option: MapStyleOption) = _state.update { it.copy(mapStyle = option, layersOpen = false) }
+    fun setMapStyle(option: MapStyleOption) {
+        updateSettings { it.copy(mapStyle = option) }
+        _state.update { it.copy(layersOpen = false) }
+    }
 
     fun openSearch(target: SearchTarget, initial: String = "") {
         queryFlow.value = initial

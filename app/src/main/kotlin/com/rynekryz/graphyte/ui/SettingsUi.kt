@@ -5,6 +5,12 @@ package com.rynekryz.graphyte.ui
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,9 +21,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,6 +46,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,12 +56,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.rynekryz.graphyte.data.MapStyleOption
 import com.rynekryz.graphyte.data.Settings
 import com.rynekryz.graphyte.data.ThemeMode
 import com.rynekryz.graphyte.data.UnitsMode
@@ -77,6 +89,15 @@ private fun AvatarBadge(avatar: Bitmap?, size: Dp) {
     }
 }
 
+private enum class RoundingType { TOP, MIDDLE, BOTTOM, SINGLE }
+
+private fun roundingShape(type: RoundingType) = when (type) {
+    RoundingType.TOP -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+    RoundingType.BOTTOM -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+    RoundingType.MIDDLE -> RoundedCornerShape(4.dp)
+    RoundingType.SINGLE -> RoundedCornerShape(24.dp)
+}
+
 @Composable
 private fun SettingsRow(
     icon: String,
@@ -91,12 +112,7 @@ private fun SettingsRow(
         onClick = onClick ?: {},
         enabled = onClick != null,
         interactionSource = interaction,
-        shape = when (roundingType) {
-            RoundingType.TOP -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-            RoundingType.BOTTOM -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-            RoundingType.MIDDLE -> RoundedCornerShape(4.dp)
-            RoundingType.SINGLE -> RoundedCornerShape(24.dp)
-        },
+        shape = roundingShape(roundingType),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
         modifier = Modifier.fillMaxWidth().pressScale(interaction, 0.97f),
     ) {
@@ -132,37 +148,58 @@ private fun SettingsGroupLabel(text: String) {
     )
 }
 
-private enum class RoundingType { TOP, MIDDLE, BOTTOM, SINGLE }
-
 @Composable
 private fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp), content = content)
 }
 
 @Composable
-private fun <T> SingleChoiceSegmented(
-    options: List<Pair<T, String>>,
-    selected: T,
-    onSelect: (T) -> Unit,
+private fun Segmented(
+    options: List<Pair<String, String>>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    val haptics = rememberHaptics()
+    var width by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val segment = width / options.size.toFloat()
+    val x by animateFloatAsState(
+        targetValue = segment * selectedIndex,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "segmented-x",
+    )
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .onSizeChanged { width = it.width },
     ) {
-        options.forEach { (value, label) ->
-            val isSelected = value == selected
-            Surface(
-                onClick = { onSelect(value) },
-                shape = RoundedCornerShape(50),
-                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.weight(1f),
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier
+                .offset(x = with(density) { x.toDp() })
+                .width(with(density) { segment.toDp() })
+                .fillMaxHeight(),
+        ) {}
+        Row(Modifier.fillMaxSize()) {
+            options.forEachIndexed { i, (_, label) ->
+                val on = i == selectedIndex
+                val color by animateColorAsState(
+                    targetValue = if (on) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    label = "segmented-label",
+                )
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { haptics.click(); onSelect(i) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(label, style = MaterialTheme.typography.labelLarge, color = color, maxLines = 1)
                 }
             }
         }
@@ -178,12 +215,7 @@ private fun EmbeddedChoice(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
-        shape = when (roundingType) {
-            RoundingType.TOP -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-            RoundingType.BOTTOM -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-            RoundingType.MIDDLE -> RoundedCornerShape(4.dp)
-            RoundingType.SINGLE -> RoundedCornerShape(24.dp)
-        },
+        shape = roundingShape(roundingType),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -207,11 +239,37 @@ private fun EmbeddedChoice(
 }
 
 @Composable
+private fun SwitchRow(
+    icon: String,
+    title: String,
+    subtitle: String?,
+    checked: Boolean,
+    roundingType: RoundingType = RoundingType.SINGLE,
+    onChange: (Boolean) -> Unit,
+) {
+    val haptics = rememberHaptics()
+    SettingsRow(
+        icon = icon,
+        title = title,
+        subtitle = subtitle,
+        roundingType = roundingType,
+        onClick = { onChange(!checked) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = { haptics.click(); onChange(it) },
+            )
+        },
+    )
+}
+
+@Composable
 fun SettingsScreen(
     settings: Settings,
     avatar: Bitmap?,
     recentsCount: Int,
     savedCount: Int,
+    mapStyle: MapStyleOption,
     onDismiss: () -> Unit,
     onName: (String) -> Unit,
     onVoice: (Boolean) -> Unit,
@@ -219,6 +277,11 @@ fun SettingsScreen(
     onKeepScreenOn: (Boolean) -> Unit,
     onUnits: (UnitsMode) -> Unit,
     onTheme: (ThemeMode) -> Unit,
+    onHaptics: (Boolean) -> Unit,
+    onRotateGestures: (Boolean) -> Unit,
+    onTiltGestures: (Boolean) -> Unit,
+    onAutoNight: (Boolean) -> Unit,
+    onMapStyle: (MapStyleOption) -> Unit,
     onPickPhoto: () -> Unit,
     onRemovePhoto: () -> Unit,
     onClearRecents: () -> Unit,
@@ -229,7 +292,16 @@ fun SettingsScreen(
     val context = LocalContext.current
     var editingName by rememberSaveable { mutableStateOf(false) }
     val versionName = remember(context) {
-        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
+        runCatching {
+            val pm = context.packageManager
+            val info = if (Build.VERSION.SDK_INT >= 33) {
+                pm.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getPackageInfo(context.packageName, 0)
+            }
+            info.versionName
+        }.getOrNull() ?: "?"
     }
     val nameDisplay = settings.name.ifBlank { "Set your name" }
 
@@ -337,10 +409,10 @@ fun SettingsScreen(
                     "Match system, always light or always dark",
                     roundingType = RoundingType.TOP,
                 ) {
-                    SingleChoiceSegmented(
-                        options = ThemeMode.entries.map { it to it.label },
-                        selected = settings.theme,
-                        onSelect = { haptics.click(); onTheme(it) },
+                    Segmented(
+                        options = ThemeMode.entries.map { it.name to it.label },
+                        selectedIndex = ThemeMode.entries.indexOf(settings.theme),
+                        onSelect = { haptics.click(); onTheme(ThemeMode.entries[it]) },
                     )
                 }
                 EmbeddedChoice(
@@ -349,28 +421,75 @@ fun SettingsScreen(
                     "Autodetect, kilometers or miles",
                     roundingType = RoundingType.BOTTOM,
                 ) {
-                    SingleChoiceSegmented(
-                        options = UnitsMode.entries.map { it to it.label },
-                        selected = settings.units,
-                        onSelect = { haptics.click(); onUnits(it) },
+                    Segmented(
+                        options = UnitsMode.entries.map { it.name to it.label },
+                        selectedIndex = UnitsMode.entries.indexOf(settings.units),
+                        onSelect = { haptics.click(); onUnits(UnitsMode.entries[it]) },
                     )
                 }
             }
 
+            SettingsGroupLabel("Map")
+            SettingsGroup {
+                EmbeddedChoice(
+                    "layers",
+                    "Default map type",
+                    "The look of the tiles when the app opens",
+                    roundingType = RoundingType.TOP,
+                ) {
+                    Segmented(
+                        options = MapStyleOption.entries.map { it.name to it.label },
+                        selectedIndex = MapStyleOption.entries.indexOf(mapStyle),
+                        onSelect = { haptics.click(); onMapStyle(MapStyleOption.entries[it]) },
+                    )
+                }
+                SwitchRow(
+                    icon = "nightlight",
+                    title = "Automatic night map",
+                    subtitle = "Use the night map while dark theme is on",
+                    checked = settings.autoNight,
+                    roundingType = RoundingType.BOTTOM,
+                    onChange = onAutoNight,
+                )
+            }
+
+            SettingsGroupLabel("Gestures")
+            SettingsGroup {
+                SwitchRow(
+                    icon = "screen_rotation",
+                    title = "Map rotation",
+                    subtitle = "Spin the map with two fingers",
+                    checked = settings.rotateGestures,
+                    roundingType = RoundingType.TOP,
+                    onChange = onRotateGestures,
+                )
+                SwitchRow(
+                    icon = "3d_rotation",
+                    title = "Tilt the map",
+                    subtitle = "See buildings in 3D by swiping with two fingers",
+                    checked = settings.tiltGestures,
+                    roundingType = RoundingType.BOTTOM,
+                    onChange = onTiltGestures,
+                )
+            }
+
             SettingsGroupLabel("Convenience")
             SettingsGroup {
-                SettingsRow(
-                    "brightness_high",
-                    "Keep screen on",
+                SwitchRow(
+                    icon = "brightness_high",
+                    title = "Keep screen on",
                     subtitle = "Screen won't turn off while using Graphyte",
-                    roundingType = RoundingType.SINGLE,
-                    onClick = { onKeepScreenOn(!settings.keepScreenOn) },
-                    trailing = {
-                        Switch(
-                            checked = settings.keepScreenOn,
-                            onCheckedChange = { haptics.click(); onKeepScreenOn(it) },
-                        )
-                    },
+                    checked = settings.keepScreenOn,
+                    roundingType = RoundingType.TOP,
+                    onChange = onKeepScreenOn,
+                )
+                SwitchRow(
+                    icon = "vibration",
+                    title = "Haptic feedback",
+                    subtitle = "Small vibrations on actions",
+                    checked = settings.haptics,
+                    roundingType = RoundingType.BOTTOM,
+                    onChange = onHaptics,
                 )
             }
 
@@ -406,7 +525,7 @@ fun SettingsScreen(
                     "License",
                     subtitle = "GNU General Public License v3.0 (GPLv3)\nFree, open source software. You may use, study, share and improve this software.",
                     roundingType = RoundingType.BOTTOM,
-                    onClick = { openUrl("https://github.com/rynekryz/rynemaps/blob/main/LICENSE") },
+                    onClick = { openUrl("https://github.com/rynekryz/graphyte/blob/main/LICENSE") },
                 )
             }
 

@@ -17,5 +17,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RyMaps"
+rootProject.name = "graphyte"
 include(":app")

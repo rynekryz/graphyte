@@ -58,7 +58,7 @@ class Haptics(
 }
 
 @Composable
-fun rememberHaptics(enabled: Boolean = true): Haptics {
+fun rememberHaptics(enabled: Boolean = LocalHapticsEnabled.current): Haptics {
     val context = LocalContext.current
     val enabledState = rememberUpdatedState(enabled)
     return remember { Haptics(context.vibratorOrNull()) { enabledState.value } }

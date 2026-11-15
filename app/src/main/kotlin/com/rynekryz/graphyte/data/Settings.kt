@@ -19,6 +19,12 @@ data class Settings(
     val units: UnitsMode = UnitsMode.Auto,
     val theme: ThemeMode = ThemeMode.System,
     val avatarVersion: Int = 0,
+    val haptics: Boolean = true,
+    val rotateGestures: Boolean = true,
+    val tiltGestures: Boolean = true,
+    val autoNight: Boolean = true,
+    val mapStyle: MapStyleOption? = null,
+    val oobeDone: Boolean = false,
 )
 
 class SettingsStore(private val context: Context) {
@@ -30,6 +36,7 @@ class SettingsStore(private val context: Context) {
         val o = runCatching { JSONObject(prefs.getString("settings", "{}") ?: "{}") }.getOrNull() ?: return Settings()
         val units = runCatching { UnitsMode.valueOf(o.getString("units")) }.getOrDefault(UnitsMode.Auto)
         val theme = runCatching { ThemeMode.valueOf(o.getString("theme")) }.getOrDefault(ThemeMode.System)
+        val style = runCatching { MapStyleOption.valueOf(o.getString("mapStyle")) }.getOrNull()
         val name = o.optString("name", "").take(24)
         return Settings(
             name = if (name == "Ryne") "" else name,
@@ -37,6 +44,12 @@ class SettingsStore(private val context: Context) {
             keepScreenOn = o.optBoolean("keepScreenOn", true),
             units = units,
             theme = theme,
+            haptics = o.optBoolean("haptics", true),
+            rotateGestures = o.optBoolean("rotateGestures", true),
+            tiltGestures = o.optBoolean("tiltGestures", true),
+            autoNight = o.optBoolean("autoNight", true),
+            mapStyle = style,
+            oobeDone = o.optBoolean("oobeDone", false),
         )
     }
 
@@ -47,6 +60,12 @@ class SettingsStore(private val context: Context) {
             .put("keepScreenOn", settings.keepScreenOn)
             .put("units", settings.units.name)
             .put("theme", settings.theme.name)
+            .put("haptics", settings.haptics)
+            .put("rotateGestures", settings.rotateGestures)
+            .put("tiltGestures", settings.tiltGestures)
+            .put("autoNight", settings.autoNight)
+            .put("oobeDone", settings.oobeDone)
+        if (settings.mapStyle != null) o.put("mapStyle", settings.mapStyle.name)
         prefs.edit().putString("settings", o.toString()).apply()
     }
 

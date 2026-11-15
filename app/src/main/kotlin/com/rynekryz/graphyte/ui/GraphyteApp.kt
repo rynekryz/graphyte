@@ -20,6 +20,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,9 +78,13 @@ private val bouncySpring = spring<Float>(
 
 @Composable
 fun GraphyteApp(vm: MapViewModel) {
-    val haptics = rememberHaptics()
-    val state by vm.state.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
+    if (!settings.oobeDone) {
+        OnboardingScreen(onDone = vm::completeOobe)
+        return
+    }
+    val haptics = rememberHaptics(settings.haptics)
+    val state by vm.state.collectAsStateWithLifecycle()
     val avatar by vm.avatar.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val view = LocalView.current
@@ -140,7 +146,8 @@ fun GraphyteApp(vm: MapViewModel) {
     BackHandler(enabled = state.layersOpen) { vm.showLayers(false) }
     BackHandler(enabled = showSettings) { showSettings = false }
 
-    val styleUrl = (state.mapStyle ?: if (dark) MapStyleOption.Night else MapStyleOption.Default).url
+    val styleOption = settings.mapStyle ?: if (dark && settings.autoNight) MapStyleOption.Night else MapStyleOption.Default
+    val styleUrl = styleOption.url
     val lastCamera = remember { vm.lastCamera() }
     val pin = directions?.destination?.takeIf { it.id != MY_LOCATION.id } ?: state.selected
     val route = nav?.route?.points ?: directions?.route?.points
@@ -158,6 +165,10 @@ fun GraphyteApp(vm: MapViewModel) {
             lastCamera = lastCamera,
             commands = vm.camera,
             attributionBottomPx = sheetHeight,
+            routeColor = MaterialTheme.colorScheme.primary,
+            pinColor = MaterialTheme.colorScheme.error,
+            rotateGestures = settings.rotateGestures,
+            tiltGestures = settings.tiltGestures,
             onTap = vm::onMapTap,
             onLongPress = vm::onMapLongPress,
             onBearing = { bearing = it },
@@ -166,7 +177,20 @@ fun GraphyteApp(vm: MapViewModel) {
             modifier = Modifier.fillMaxSize(),
         )
 
-        if (state.tab == Tab.Saved && directions == null) {
+        AnimatedVisibility(
+            visible = state.tab == Tab.Saved && directions == null,
+            enter = slideInVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+                initialOffsetY = { it / 3 },
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                targetOffsetY = { it / 3 },
+            ) + fadeOut(),
+        ) {
             SavedScreen(state.saved, onOpen = vm::openSaved, onRemove = vm::removeSaved)
         }
 
@@ -329,15 +353,24 @@ fun GraphyteApp(vm: MapViewModel) {
 
     if (state.layersOpen) {
         LayersSheet(
-            current = state.mapStyle ?: if (dark) MapStyleOption.Night else MapStyleOption.Default,
+            current = styleOption,
             onSelect = vm::setMapStyle,
             onDismiss = { vm.showLayers(false) },
         )
     }
     AnimatedVisibility(
         visible = showSettings,
-        enter = scaleIn(bouncySpring, initialScale = 0.92f) + fadeIn(),
-        exit = fadeOut() + scaleOut(bouncySpring, targetScale = 0.92f),
+        enter = slideInVertically(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+            initialOffsetY = { it },
+        ) + fadeIn(),
+        exit = slideOutVertically(
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            targetOffsetY = { it },
+        ) + fadeOut(),
     ) {
         SettingsScreen(
             settings = settings,
@@ -351,6 +384,12 @@ fun GraphyteApp(vm: MapViewModel) {
             onKeepScreenOn = vm::setKeepScreenOn,
             onUnits = vm::setUnits,
             onTheme = vm::setTheme,
+            onHaptics = vm::setHaptics,
+            onRotateGestures = vm::setRotateGestures,
+            onTiltGestures = vm::setTiltGestures,
+            onAutoNight = vm::setAutoNight,
+            mapStyle = styleOption,
+            onMapStyle = vm::setMapStyle,
             onPickPhoto = {
                 photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },

@@ -2,7 +2,7 @@ package com.rynekryz.graphyte.ui.map
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
+import android.graphics.Color as AndroidColor
 import android.graphics.Paint
 import android.graphics.Path
 import android.location.Location
@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -59,29 +61,21 @@ import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonSource
 
 private const val EMPTY = """{"type":"FeatureCollection","features":[]}"""
-private const val ROUTE_SRC = "ry-route-src"
-private const val SELECTED_SRC = "ry-selected-src"
-private const val ROUTE_CASING = "ry-route-casing"
-private const val ROUTE_LINE = "ry-route-line"
-private const val SELECTED_LAYER = "ry-selected-layer"
-private const val PIN = "ry-pin"
-private val ROUTE_BLUE = Color.parseColor("#1A73E8")
-private val PIN_RED = Color.parseColor("#EA4335")
+private const val ROUTE_SRC = "gr-route-src"
+private const val SELECTED_SRC = "gr-selected-src"
+private const val ROUTE_CASING = "gr-route-casing"
+private const val ROUTE_LINE = "gr-route-line"
+private const val SELECTED_LAYER = "gr-selected-layer"
+private const val PIN = "gr-pin"
+private val ROUTE_CASING_COLOR = AndroidColor.parseColor("#FFFFFF")
 
-private class MapHolder(val view: MapView) {
-    var map: MapLibreMap? = null
-    var style: Style? = null
-    var destroyed = false
-    var trackingListener: OnCameraTrackingChangedListener? = null
-}
-
-private fun pinBitmap(density: Float): Bitmap {
+private fun pinBitmap(density: Float, color: Int): Bitmap {
     val w = (30 * density).toInt()
     val h = (42 * density).toInt()
     val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
     val c = Canvas(bmp)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    paint.color = PIN_RED
+    paint.color = color
     val r = w / 2f
     c.drawCircle(r, r, r, paint)
     val path = Path().apply {
@@ -91,9 +85,16 @@ private fun pinBitmap(density: Float): Bitmap {
         close()
     }
     c.drawPath(path, paint)
-    paint.color = Color.WHITE
+    paint.color = AndroidColor.WHITE
     c.drawCircle(r, r, r * 0.38f, paint)
     return bmp
+}
+
+private class MapHolder(val view: MapView) {
+    var map: MapLibreMap? = null
+    var style: Style? = null
+    var destroyed = false
+    var trackingListener: OnCameraTrackingChangedListener? = null
 }
 
 private fun lineJson(points: List<GeoPoint>?): String {
@@ -135,6 +136,10 @@ fun GraphyteView(
     lastCamera: LastCamera?,
     commands: Flow<CameraCommand>,
     attributionBottomPx: Int,
+    routeColor: Color,
+    pinColor: Color,
+    rotateGestures: Boolean = true,
+    tiltGestures: Boolean = true,
     onTap: (MapTap) -> Unit,
     onLongPress: (GeoPoint) -> Unit,
     onBearing: (Float) -> Unit,
@@ -156,7 +161,10 @@ fun GraphyteView(
     val followingNow by rememberUpdatedState(following)
     val lastCameraNow by rememberUpdatedState(lastCamera)
     val cameraIdleCb by rememberUpdatedState(onCameraIdle)
-    val pinImage = remember { pinBitmap(density) }
+    val routeColorNow by rememberUpdatedState(routeColor.toArgb())
+    val rotateNow by rememberUpdatedState(rotateGestures)
+    val tiltNow by rememberUpdatedState(tiltGestures)
+    val pinImage = remember(pinColor.toArgb()) { pinBitmap(density, pinColor.toArgb()) }
 
     fun setupStyle(style: Style) {
         holder.style = style
@@ -165,11 +173,11 @@ fun GraphyteView(
         style.addSource(GeoJsonSource(SELECTED_SRC, EMPTY))
         val firstSymbol = style.layers.firstOrNull { it is SymbolLayer }?.id
         val casing = LineLayer(ROUTE_CASING, ROUTE_SRC).withProperties(
-            lineColor(Color.WHITE), lineWidth(9f),
+            lineColor(ROUTE_CASING_COLOR), lineWidth(9f),
             lineCap(Property.LINE_CAP_ROUND), lineJoin(Property.LINE_JOIN_ROUND),
         )
         val line = LineLayer(ROUTE_LINE, ROUTE_SRC).withProperties(
-            lineColor(ROUTE_BLUE), lineWidth(6f),
+            lineColor(routeColorNow), lineWidth(6f),
             lineCap(Property.LINE_CAP_ROUND), lineJoin(Property.LINE_JOIN_ROUND),
         )
         if (firstSymbol != null) {
@@ -188,8 +196,29 @@ fun GraphyteView(
         styleVersion++
     }
 
-    fun loadStyle(map: MapLibreMap, url: String) {
-        map.setStyle(Style.Builder().fromUri(url)) { setupStyle(it) }
+    var styleInFlight by remember { mutableStateOf(false) }
+    var pendingStyle by remember { mutableStateOf<String?>(null) }
+    var loadedStyle by remember { mutableStateOf<String?>(null) }
+
+    fun applyStyle(map: MapLibreMap, url: String) {
+        if (styleInFlight) {
+            pendingStyle = url
+            return
+        }
+        styleInFlight = true
+        loadedStyle = url
+        map.setStyle(Style.Builder().fromUri(url)) { style ->
+            styleInFlight = false
+            if (holder.destroyed) return@setStyle
+            setupStyle(style)
+            val next = pendingStyle
+            if (next != null && next != url) {
+                pendingStyle = null
+                holder.view.post { applyStyle(map, next) }
+            } else {
+                pendingStyle = null
+            }
+        }
     }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -217,6 +246,8 @@ fun GraphyteView(
             map.uiSettings.isCompassEnabled = false
             map.uiSettings.isAttributionEnabled = true
             map.uiSettings.attributionGravity = Gravity.BOTTOM or Gravity.START
+            map.uiSettings.isRotateGesturesEnabled = rotateNow
+            map.uiSettings.isTiltGesturesEnabled = tiltNow
             map.setMinZoomPreference(2.0)
             val last = lastCameraNow
             map.moveCamera(
@@ -258,7 +289,7 @@ fun GraphyteView(
                 true
             }
             map.addOnCameraMoveListener { bearingCb(map.cameraPosition.bearing.toFloat()) }
-            loadStyle(map, currentStyleUrl)
+            applyStyle(map, currentStyleUrl)
             mapReady = true
         }
         onDispose {
@@ -272,22 +303,37 @@ fun GraphyteView(
         }
     }
 
-    var lastStyle by remember { mutableStateOf(styleUrl) }
     LaunchedEffect(styleUrl, mapReady) {
         val map = holder.map
-        if (mapReady && map != null && styleUrl != lastStyle) {
-            lastStyle = styleUrl
-            loadStyle(map, styleUrl)
+        if (mapReady && map != null && styleUrl != loadedStyle) applyStyle(map, styleUrl)
+    }
+
+    LaunchedEffect(rotateGestures, tiltGestures, mapReady) {
+        holder.map?.uiSettings?.apply {
+            isRotateGesturesEnabled = rotateGestures
+            isTiltGesturesEnabled = tiltGestures
         }
+    }
+
+    fun editStyle(block: (Style) -> Unit) {
+        if (!styleInFlight) holder.style?.let { runCatching { block(it) } }
+    }
+
+    LaunchedEffect(styleVersion, routeColor) {
+        editStyle { it.getLayerAs<LineLayer>(ROUTE_LINE)?.setProperties(lineColor(routeColor.toArgb())) }
+    }
+
+    LaunchedEffect(styleVersion, pinImage) {
+        editStyle { it.addImage(PIN, pinImage) }
     }
 
     LaunchedEffect(route, styleVersion) {
         val json = withContext(Dispatchers.Default) { lineJson(route) }
-        holder.style?.getSourceAs<GeoJsonSource>(ROUTE_SRC)?.setGeoJson(json)
+        editStyle { it.getSourceAs<GeoJsonSource>(ROUTE_SRC)?.setGeoJson(json) }
     }
     LaunchedEffect(selected, styleVersion) {
         val json = withContext(Dispatchers.Default) { pointsJson(listOfNotNull(selected)) }
-        holder.style?.getSourceAs<GeoJsonSource>(SELECTED_SRC)?.setGeoJson(json)
+        editStyle { it.getSourceAs<GeoJsonSource>(SELECTED_SRC)?.setGeoJson(json) }
     }
 
     LaunchedEffect(attributionBottomPx, mapReady) {
@@ -297,32 +343,34 @@ fun GraphyteView(
     LaunchedEffect(styleVersion, hasPermission) {
         val map = holder.map ?: return@LaunchedEffect
         val style = holder.style ?: return@LaunchedEffect
-        if (!hasPermission) return@LaunchedEffect
-        val lc = map.locationComponent
-        lc.activateLocationComponent(
-            LocationComponentActivationOptions.builder(context, style)
-                .useDefaultLocationEngine(false)
-                .locationComponentOptions(LocationComponentOptions.builder(context).pulseEnabled(true).build())
-                .build()
-        )
-        lc.isLocationComponentEnabled = true
-        lc.cameraMode = CameraMode.NONE
-        lc.renderMode = RenderMode.COMPASS
-        holder.trackingListener?.let { lc.removeOnCameraTrackingChangedListener(it) }
-        val listener = object : OnCameraTrackingChangedListener {
-            override fun onCameraTrackingDismissed() {
-                followCb(false)
-            }
-
-            override fun onCameraTrackingChanged(currentMode: Int) {
-                followCb(currentMode != CameraMode.NONE)
-            }
-        }
-        holder.trackingListener = listener
-        lc.addOnCameraTrackingChangedListener(listener)
-        if (followingNow) {
+        if (!hasPermission || styleInFlight) return@LaunchedEffect
+        runCatching {
+            val lc = map.locationComponent
+            lc.activateLocationComponent(
+                LocationComponentActivationOptions.builder(context, style)
+                    .useDefaultLocationEngine(false)
+                    .locationComponentOptions(LocationComponentOptions.builder(context).pulseEnabled(true).build())
+                    .build()
+            )
+            lc.isLocationComponentEnabled = true
+            lc.cameraMode = CameraMode.NONE
             lc.renderMode = RenderMode.COMPASS
-            lc.cameraMode = CameraMode.TRACKING
+            holder.trackingListener?.let { lc.removeOnCameraTrackingChangedListener(it) }
+            val listener = object : OnCameraTrackingChangedListener {
+                override fun onCameraTrackingDismissed() {
+                    followCb(false)
+                }
+
+                override fun onCameraTrackingChanged(currentMode: Int) {
+                    followCb(currentMode != CameraMode.NONE)
+                }
+            }
+            holder.trackingListener = listener
+            lc.addOnCameraTrackingChangedListener(listener)
+            if (followingNow) {
+                lc.renderMode = RenderMode.COMPASS
+                lc.cameraMode = CameraMode.TRACKING
+            }
         }
     }
 

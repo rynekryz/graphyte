@@ -4,9 +4,15 @@ package com.rynekryz.graphyte.ui
 
 import android.content.Context
 import android.content.Intent
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,8 +42,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +85,11 @@ fun SearchPill(
     modifier: Modifier = Modifier,
 ) {
     val press = remember { MutableInteractionSource() }
+    var greeted by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(2400)
+        greeted = false
+    }
     Surface(
         onClick = onClick,
         interactionSource = press,
@@ -83,22 +99,40 @@ fun SearchPill(
         shadowElevation = 6.dp,
     ) {
         Row(
-            Modifier.padding(start = 14.dp, end = 12.dp).heightIn(min = 60.dp),
+            Modifier.padding(start = 20.dp, end = 12.dp).heightIn(min = 60.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Symbol("search", size = 20.dp, tint = MaterialTheme.colorScheme.onTertiaryContainer)
-            }
-            Spacer(Modifier.width(12.dp))
-            Text(
-                "Search here",
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Symbol(
+                "search",
+                size = 26.dp,
+                weight = 600,
+                tint = MaterialTheme.colorScheme.primary,
             )
+            Spacer(Modifier.width(12.dp))
+            AnimatedContent(
+                targetState = greeted,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(700)) togetherWith fadeOut(animationSpec = tween(700))
+                },
+                label = "search-pill-text",
+            ) { hello ->
+                if (hello) {
+                    Text(
+                        "Graphyte",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                } else {
+                    Text(
+                        "Search here",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Box(
                 Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer)
                     .clickable(onClick = onAvatar),
