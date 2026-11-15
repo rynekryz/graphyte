@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
@@ -39,11 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.rynekryz.rynemaps.data.MY_LOCATION
-import com.rynekryz.rynemaps.data.TravelMode
-import com.rynekryz.rynemaps.ui.theme.Symbol
-import com.rynekryz.rynemaps.util.formatDistance
-import com.rynekryz.rynemaps.util.formatDuration
+import com.rynekryz.graphyte.data.MY_LOCATION
+import com.rynekryz.graphyte.data.TravelMode
+import com.rynekryz.graphyte.ui.theme.Symbol
+import com.rynekryz.graphyte.util.formatDistance
+import com.rynekryz.graphyte.util.formatDuration
 import java.util.Date
 
 @Composable

@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +19,7 @@ object Api {
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
-                    .header("User-Agent", "RyMaps/1.0 (com.rynekryz.rynemaps)")
+                    .header("User-Agent", "Graphyte/1.0 (com.rynekryz.graphyte)")
                     .build()
             )
         }

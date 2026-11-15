@@ -1,12 +1,12 @@
 <div align="center">
 <img src="icon.svg" width="160" height="160" style="display: block; margin: 0 auto"/>
-<h1>RyMaps</h1>
+<h1>Graphyte</h1>
 <p>Open-source maps app for Android, powered by OpenStreetMap</p>
 <p>No API keys. No accounts. No tracking. Just maps.</p>
 </div>
 <p align="center">
-  <a href="https://github.com/rynekryz/rynemaps/stargazers"><img src="assets/badges/stars.svg" alt="GitHub stars" height="30"/></a>
-  <a href="https://github.com/rynekryz/rynemaps/tags"><img src="assets/badges/release.svg" alt="Latest release" height="30"/></a>
+  <a href="https://github.com/rynekryz/graphyte/stargazers"><img src="assets/badges/stars.svg" alt="GitHub stars" height="30"/></a>
+  <a href="https://github.com/rynekryz/graphyte/tags"><img src="assets/badges/release.svg" alt="Latest release" height="30"/></a>
   <a href="LICENSE"><img src="assets/badges/licencegplv3.svg" alt="Licence GPLv3"/></a>
   <img src="assets/badges/android.svg" alt="Android"/>
   <img src="assets/badges/kotlin.svg" alt="Kotlin"/>
@@ -27,8 +27,8 @@
 
 ### Build from command line
 ```bash
-git clone https://github.com/rynekryz/rynemaps.git
-cd rynemaps
+git clone https://github.com/rynekryz/graphyte.git
+cd graphyte
 ./gradlew build
 ```
 APK location: `app/build/outputs/apk/debug/app-debug.apk`
@@ -73,7 +73,7 @@ echo "sdk.dir=$HOME/Android/Sdk" > local.properties
 | [OSRM](https://routing.openstreetmap.de/) | Routing |
 | [MapLibre](https://maplibre.org/) | Map rendering |
 
-All free, public, and key-free, which is what keeps RyMaps privacy-respecting by design.
+All free, public, and key-free, which is what keeps Graphyte privacy-respecting by design.
 
 ## License
 

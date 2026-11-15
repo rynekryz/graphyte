@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.content.Context
 import android.os.VibrationEffect

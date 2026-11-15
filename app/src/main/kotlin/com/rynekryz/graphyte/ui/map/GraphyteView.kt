@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.ui.map
+package com.rynekryz.graphyte.ui.map
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -22,10 +22,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.rynekryz.rynemaps.data.GeoPoint
-import com.rynekryz.rynemaps.data.MapTap
-import com.rynekryz.rynemaps.data.Place
-import com.rynekryz.rynemaps.ui.CameraCommand
+import com.rynekryz.graphyte.data.GeoPoint
+import com.rynekryz.graphyte.data.LastCamera
+import com.rynekryz.graphyte.data.MapTap
+import com.rynekryz.graphyte.data.Place
+import com.rynekryz.graphyte.ui.CameraCommand
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -124,19 +125,21 @@ private fun pointsJson(places: List<Place>): String {
 }
 
 @Composable
-fun RyMapView(
+fun GraphyteView(
     styleUrl: String,
     route: List<GeoPoint>?,
     selected: Place?,
     location: Location?,
     hasPermission: Boolean,
     following: Boolean,
+    lastCamera: LastCamera?,
     commands: Flow<CameraCommand>,
     attributionBottomPx: Int,
     onTap: (MapTap) -> Unit,
     onLongPress: (GeoPoint) -> Unit,
     onBearing: (Float) -> Unit,
     onFollowing: (Boolean) -> Unit,
+    onCameraIdle: (LastCamera) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -151,6 +154,8 @@ fun RyMapView(
     val followCb by rememberUpdatedState(onFollowing)
     val permissionNow by rememberUpdatedState(hasPermission)
     val followingNow by rememberUpdatedState(following)
+    val lastCameraNow by rememberUpdatedState(lastCamera)
+    val cameraIdleCb by rememberUpdatedState(onCameraIdle)
     val pinImage = remember { pinBitmap(density) }
 
     fun setupStyle(style: Style) {
@@ -213,11 +218,24 @@ fun RyMapView(
             map.uiSettings.isAttributionEnabled = true
             map.uiSettings.attributionGravity = Gravity.BOTTOM or Gravity.START
             map.setMinZoomPreference(2.0)
+            val last = lastCameraNow
             map.moveCamera(
                 CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.Builder().target(LatLng(30.0, 10.0)).zoom(2.5).build()
+                    if (last != null) {
+                        CameraPosition.Builder()
+                            .target(LatLng(last.point.lat, last.point.lon))
+                            .zoom(last.zoom)
+                            .build()
+                    } else {
+                        CameraPosition.Builder().target(LatLng(30.0, 10.0)).zoom(2.5).build()
+                    }
                 )
             )
+            map.addOnCameraIdleListener {
+                val pos = map.cameraPosition
+                val t = pos.target ?: return@addOnCameraIdleListener
+                cameraIdleCb(LastCamera(GeoPoint(t.latitude, t.longitude), pos.zoom))
+            }
             map.addOnMapClickListener { latLng ->
                 val px = map.projection.toScreenLocation(latLng)
                 var tap = MapTap(GeoPoint(latLng.latitude, latLng.longitude), null, null, null)

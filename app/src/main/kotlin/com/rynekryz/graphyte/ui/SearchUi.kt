@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,8 +39,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import com.rynekryz.rynemaps.data.Place
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.data.Place
+import com.rynekryz.graphyte.ui.theme.Symbol
 
 @Composable
 fun SearchOverlay(
@@ -52,7 +51,7 @@ fun SearchOverlay(
     onPick: (Place) -> Unit,
     onMyLocation: () -> Unit,
 ) {
-    var text by rememberSaveable { mutableStateOf(state.query) }
+    var text by remember { mutableStateOf(state.query) }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
 

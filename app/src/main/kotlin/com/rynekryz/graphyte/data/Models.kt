@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import org.json.JSONObject
 
@@ -38,6 +38,8 @@ data class Place(
 }
 
 val MY_LOCATION = Place("me", "Your location", "", "", GeoPoint(0.0, 0.0), "my_location")
+
+data class LastCamera(val point: GeoPoint, val zoom: Double)
 
 enum class TravelMode(val label: String, val icon: String, val server: String) {
     Drive("Drive", "directions_car", "routed-car"),

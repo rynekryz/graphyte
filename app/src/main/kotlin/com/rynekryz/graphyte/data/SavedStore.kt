@@ -1,10 +1,10 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import android.content.Context
 import org.json.JSONArray
 
 class SavedStore(context: Context) {
-    private val prefs = context.getSharedPreferences("rymaps", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("graphyte", Context.MODE_PRIVATE)
 
     fun saved(): List<Place> = read("saved")
 

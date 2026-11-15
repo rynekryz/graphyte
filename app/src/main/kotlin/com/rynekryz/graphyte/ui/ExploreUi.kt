@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.content.Context
 import android.content.Intent
@@ -46,8 +46,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.rynekryz.rynemaps.data.Place
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.data.Place
+import com.rynekryz.graphyte.ui.theme.Symbol
 
 @Composable
 fun Modifier.pressScale(interaction: MutableInteractionSource, pressedScale: Float = 0.94f): Modifier {

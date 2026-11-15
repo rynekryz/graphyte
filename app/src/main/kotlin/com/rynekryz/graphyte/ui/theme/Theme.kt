@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.ui.theme
+package com.rynekryz.graphyte.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import com.rynekryz.rynemaps.R
+import com.rynekryz.graphyte.R
 
 private val GoogleSansFlex = FontFamily(
     listOf(300, 400, 500, 600, 700).map { w ->
@@ -65,7 +65,7 @@ private val RyShapes = Shapes(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun RyMapsTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun GraphyteTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val context = LocalContext.current
     MaterialTheme(
         colorScheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context),

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -53,10 +53,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.rynekryz.rynemaps.data.Settings
-import com.rynekryz.rynemaps.data.ThemeMode
-import com.rynekryz.rynemaps.data.UnitsMode
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.data.Settings
+import com.rynekryz.graphyte.data.ThemeMode
+import com.rynekryz.graphyte.data.UnitsMode
+import com.rynekryz.graphyte.ui.theme.Symbol
 
 @Composable
 private fun AvatarBadge(avatar: Bitmap?, size: Dp) {
@@ -362,7 +362,7 @@ fun SettingsScreen(
                 SettingsRow(
                     "brightness_high",
                     "Keep screen on",
-                    subtitle = "Screen won't turn off while using RyMaps",
+                    subtitle = "Screen won't turn off while using Graphyte",
                     roundingType = RoundingType.SINGLE,
                     onClick = { onKeepScreenOn(!settings.keepScreenOn) },
                     trailing = {
@@ -396,7 +396,7 @@ fun SettingsScreen(
             SettingsGroup {
                 SettingsRow(
                     "map",
-                    "RyMaps",
+                    "Graphyte",
                     subtitle = "v$versionName · by Ryne",
                     roundingType = RoundingType.TOP,
                     onClick = onAbout,

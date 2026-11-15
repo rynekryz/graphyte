@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps
+package com.rynekryz.graphyte
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,11 +9,11 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rynekryz.rynemaps.data.ThemeMode
-import com.rynekryz.rynemaps.ui.MapViewModel
-import com.rynekryz.rynemaps.ui.RyMapsApp
-import com.rynekryz.rynemaps.ui.theme.RyMapsTheme
-import com.rynekryz.rynemaps.util.Units
+import com.rynekryz.graphyte.data.ThemeMode
+import com.rynekryz.graphyte.ui.MapViewModel
+import com.rynekryz.graphyte.ui.GraphyteApp
+import com.rynekryz.graphyte.ui.theme.GraphyteTheme
+import com.rynekryz.graphyte.util.Units
 import org.maplibre.android.MapLibre
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         MapLibre.getInstance(this)
-        if (savedInstanceState == null) handle(intent)
+        handle(intent)
         setContent {
             val settings by vm.settings.collectAsStateWithLifecycle()
             Units.mode = settings.units
@@ -32,8 +32,8 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.Dark -> true
                 ThemeMode.System -> isSystemInDarkTheme()
             }
-            RyMapsTheme(dark = dark) {
-                RyMapsApp(vm)
+            GraphyteTheme(dark = dark) {
+                GraphyteApp(vm)
             }
         }
     }

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.Manifest
 import android.content.Intent
@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,10 +62,11 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rynekryz.rynemaps.data.MY_LOCATION
-import com.rynekryz.rynemaps.data.MapStyleOption
-import com.rynekryz.rynemaps.ui.map.RyMapView
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.data.MY_LOCATION
+import com.rynekryz.graphyte.data.MapStyleOption
+import com.rynekryz.graphyte.data.ThemeMode
+import com.rynekryz.graphyte.ui.map.GraphyteView
+import com.rynekryz.graphyte.ui.theme.Symbol
 import kotlin.math.abs
 
 private val bouncySpring = spring<Float>(
@@ -73,14 +75,18 @@ private val bouncySpring = spring<Float>(
 )
 
 @Composable
-fun RyMapsApp(vm: MapViewModel) {
+fun GraphyteApp(vm: MapViewModel) {
     val haptics = rememberHaptics()
     val state by vm.state.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val avatar by vm.avatar.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val view = LocalView.current
-    val dark = isSystemInDarkTheme()
+    val dark = when (settings.theme) {
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+        ThemeMode.System -> isSystemInDarkTheme()
+    }
     var bearing by remember { mutableFloatStateOf(0f) }
     var sheetHeight by remember { mutableIntStateOf(0) }
     var showAbout by remember { mutableStateOf(false) }
@@ -131,28 +137,32 @@ fun RyMapsApp(vm: MapViewModel) {
         onDispose { view.keepScreenOn = false }
     }
     BackHandler(enabled = state.canGoBack) { vm.back() }
+    BackHandler(enabled = state.layersOpen) { vm.showLayers(false) }
     BackHandler(enabled = showSettings) { showSettings = false }
 
     val styleUrl = (state.mapStyle ?: if (dark) MapStyleOption.Night else MapStyleOption.Default).url
+    val lastCamera = remember { vm.lastCamera() }
     val pin = directions?.destination?.takeIf { it.id != MY_LOCATION.id } ?: state.selected
     val route = nav?.route?.points ?: directions?.route?.points
     val exploring = directions == null && state.tab == Tab.Explore
     val showNav = nav == null && directions == null && state.selected == null
 
     Box(Modifier.fillMaxSize()) {
-        RyMapView(
+        GraphyteView(
             styleUrl = styleUrl,
             route = route,
             selected = pin,
             location = state.location,
             hasPermission = state.hasPermission,
             following = state.following,
+            lastCamera = lastCamera,
             commands = vm.camera,
             attributionBottomPx = sheetHeight,
             onTap = vm::onMapTap,
             onLongPress = vm::onMapLongPress,
             onBearing = { bearing = it },
             onFollowing = vm::setFollowing,
+            onCameraIdle = vm::saveCamera,
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -178,7 +188,7 @@ fun RyMapsApp(vm: MapViewModel) {
                     Column(Modifier.padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         IconButton(onClick = { haptics.click(); vm.showLayers(true) }) { Symbol("layers") }
                         if (abs(bearing) > 1f) {
-                            HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                            HorizontalDivider(Modifier.width(24.dp))
                             IconButton(onClick = { haptics.tick(); vm.resetNorth() }) { Symbol("navigation", modifier = Modifier.rotate(-bearing)) }
                         }
                     }
@@ -324,7 +334,11 @@ fun RyMapsApp(vm: MapViewModel) {
             onDismiss = { vm.showLayers(false) },
         )
     }
-    if (showSettings) {
+    AnimatedVisibility(
+        visible = showSettings,
+        enter = scaleIn(bouncySpring, initialScale = 0.92f) + fadeIn(),
+        exit = fadeOut() + scaleOut(bouncySpring, targetScale = 0.92f),
+    ) {
         SettingsScreen(
             settings = settings,
             avatar = avatar,
@@ -354,7 +368,7 @@ fun RyMapsApp(vm: MapViewModel) {
         AlertDialog(
             onDismissRequest = { showLocationPrompt = false },
             title = { Text("Location is off") },
-            text = { Text("Before you continue, turn on location so RyMaps can find you and guide you turn by turn.") },
+            text = { Text("Before you continue, turn on location so Graphyte can find you and guide you turn by turn.") },
             confirmButton = {
                 TextButton(onClick = {
                     showLocationPrompt = false

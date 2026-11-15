@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import kotlin.math.asin
 import kotlin.math.cos

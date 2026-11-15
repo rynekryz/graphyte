@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.rynekryz.rynemaps"
+    namespace = "com.rynekryz.graphyte"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.rynekryz.rynemaps"
+        applicationId = "com.rynekryz.graphyte"
         minSdk = 31
         targetSdk = 37
         versionCode = 5

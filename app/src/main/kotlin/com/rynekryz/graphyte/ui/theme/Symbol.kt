@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.ui.theme
+package com.rynekryz.graphyte.ui.theme
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.rynekryz.rynemaps.R
+import com.rynekryz.graphyte.R
 
 private fun symbolFamily(weight: Int): FontFamily = FontFamily(
     Font(

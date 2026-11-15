@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import android.app.Application
 import android.graphics.Bitmap
@@ -8,24 +8,26 @@ import android.net.Uri
 import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.rynekryz.rynemaps.data.Api
-import com.rynekryz.rynemaps.data.Geo
-import com.rynekryz.rynemaps.data.GeoPoint
-import com.rynekryz.rynemaps.data.LocationRepository
-import com.rynekryz.rynemaps.data.MY_LOCATION
-import com.rynekryz.rynemaps.data.MapStyleOption
-import com.rynekryz.rynemaps.data.MapTap
-import com.rynekryz.rynemaps.data.Place
-import com.rynekryz.rynemaps.data.RouteInfo
-import com.rynekryz.rynemaps.data.SavedStore
-import com.rynekryz.rynemaps.data.Settings
-import com.rynekryz.rynemaps.data.SettingsStore
-import com.rynekryz.rynemaps.data.ThemeMode
-import com.rynekryz.rynemaps.data.TravelMode
-import com.rynekryz.rynemaps.data.UnitsMode
-import com.rynekryz.rynemaps.data.VoiceGuide
-import com.rynekryz.rynemaps.util.imperialCountries
-import com.rynekryz.rynemaps.util.toGeo
+import com.rynekryz.graphyte.data.Api
+import com.rynekryz.graphyte.data.CameraStore
+import com.rynekryz.graphyte.data.Geo
+import com.rynekryz.graphyte.data.GeoPoint
+import com.rynekryz.graphyte.data.LocationRepository
+import com.rynekryz.graphyte.data.MY_LOCATION
+import com.rynekryz.graphyte.data.MapStyleOption
+import com.rynekryz.graphyte.data.MapTap
+import com.rynekryz.graphyte.data.LastCamera
+import com.rynekryz.graphyte.data.Place
+import com.rynekryz.graphyte.data.RouteInfo
+import com.rynekryz.graphyte.data.SavedStore
+import com.rynekryz.graphyte.data.Settings
+import com.rynekryz.graphyte.data.SettingsStore
+import com.rynekryz.graphyte.data.ThemeMode
+import com.rynekryz.graphyte.data.TravelMode
+import com.rynekryz.graphyte.data.UnitsMode
+import com.rynekryz.graphyte.data.VoiceGuide
+import com.rynekryz.graphyte.util.imperialCountries
+import com.rynekryz.graphyte.util.toGeo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -104,6 +106,7 @@ data class UiState(
 class MapViewModel(app: Application) : AndroidViewModel(app) {
     private val store = SavedStore(app)
     private val settingsStore = SettingsStore(app)
+    private val cameraStore = CameraStore(app)
     private val locations = LocationRepository(app)
     private val voiceGuide = VoiceGuide(app)
 
@@ -219,7 +222,7 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onPermission(granted: Boolean) {
         _state.update { it.copy(hasPermission = granted) }
-        if (granted && locationJob == null) {
+        if (granted && locationJob?.isActive != true) {
             locationJob = viewModelScope.launch { locations.updates().collect { onLocation(it) } }
         }
     }
@@ -237,6 +240,10 @@ class MapViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setFollowing(value: Boolean) = _state.update { it.copy(following = value) }
+
+    fun lastCamera(): LastCamera? = cameraStore.load()
+
+    fun saveCamera(camera: LastCamera) = cameraStore.save(camera)
 
     fun follow() {
         val s = _state.value

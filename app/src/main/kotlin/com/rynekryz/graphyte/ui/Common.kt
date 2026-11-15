@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.ui.theme.Symbol
 
 val SheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 

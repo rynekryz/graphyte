@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
@@ -17,7 +17,7 @@ class VoiceGuide(context: Context) {
             triedLanguage = true
             runCatching { engine.language = Locale.getDefault() }
         }
-        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "rymaps")
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "graphyte")
     }
 
     fun stop() {

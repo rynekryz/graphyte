@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.rynekryz.rynemaps.ui
+package com.rynekryz.graphyte.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -31,8 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.rynekryz.rynemaps.data.MapStyleOption
-import com.rynekryz.rynemaps.ui.theme.Symbol
+import com.rynekryz.graphyte.data.MapStyleOption
+import com.rynekryz.graphyte.ui.theme.Symbol
 
 @Composable
 fun LayersSheet(current: MapStyleOption, onSelect: (MapStyleOption) -> Unit, onDismiss: () -> Unit) {
@@ -94,7 +94,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Symbol("map", size = 28.dp, tint = MaterialTheme.colorScheme.primary) },
-        title = { Text("RyMaps") },
+        title = { Text("Graphyte") },
         text = {
             Text(
                 "Free and open source. No tracking, no accounts, no Google services.\n\n" +

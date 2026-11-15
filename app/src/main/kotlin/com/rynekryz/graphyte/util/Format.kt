@@ -1,8 +1,8 @@
-package com.rynekryz.rynemaps.util
+package com.rynekryz.graphyte.util
 
 import android.location.Location
-import com.rynekryz.rynemaps.data.GeoPoint
-import com.rynekryz.rynemaps.data.UnitsMode
+import com.rynekryz.graphyte.data.GeoPoint
+import com.rynekryz.graphyte.data.UnitsMode
 import java.util.Locale
 import kotlin.math.roundToInt
 

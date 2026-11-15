@@ -1,4 +1,4 @@
-package com.rynekryz.rynemaps.data
+package com.rynekryz.graphyte.data
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -22,7 +22,7 @@ data class Settings(
 )
 
 class SettingsStore(private val context: Context) {
-    private val prefs = context.getSharedPreferences("rymaps", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("graphyte", Context.MODE_PRIVATE)
     private val avatarDir = File(context.filesDir, "avatar").apply { mkdirs() }
     val avatarFile = File(avatarDir, "avatar.png")
 
