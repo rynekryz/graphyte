@@ -1,8 +1,8 @@
 <div align="center">
 <img src="icon.svg" width="160" height="160" style="display: block; margin: 0 auto"/>
 <h1>Graphyte</h1>
-<p>Open-source maps app for Android, powered by OpenStreetMap</p>
-<p>No API keys. No accounts. No tracking. Just maps.</p>
+<p>Open-source maps for Android, powered by OpenStreetMap.</p>
+<p>Search places, get turn-by-turn directions, and find nearby spots, with no API keys, accounts, or tracking.</p>
 </div>
 <p align="center">
   <a href="https://github.com/rynekryz/graphyte/stargazers"><img src="assets/badges/stars.svg" alt="GitHub stars" height="30"/></a>
@@ -12,60 +12,48 @@
   <img src="assets/badges/kotlin.svg" alt="Kotlin"/>
 </p>
 
-## Building the APK
+<p align="center">
+  <a href="https://github.com/rynekryz/graphyte/releases"><img src="assets/badges/getgithub.svg" alt="Get it on GitHub" height="56"/></a>
+</p>
 
-### Requirements
-- Android SDK 37+ (or Android Studio)
-- Java 17+
-- Git
-
-### Build with Android Studio
-1. Clone the repo and open it in Android Studio
-2. Wait for Gradle sync
-3. Connect an Android device or use an emulator
-4. Click **Run** to build and install
-
-### Build from command line
-```bash
-git clone https://github.com/rynekryz/graphyte.git
-cd graphyte
-./gradlew build
-```
-APK location: `app/build/outputs/apk/debug/app-debug.apk`
-
-### Build with sdkmanager only (no Android Studio)
-```bash
-sdkmanager "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
-echo "sdk.dir=$HOME/Android/Sdk" > local.properties
-./gradlew build
-```
-
-## Screenshots
+---
 
 ## Features
 
-- Offline-friendly vector map rendering via MapLibre
-- Place search powered by Photon (OpenStreetMap geocoder)
-- Reverse geocoding of dropped pins via Nominatim
-- Discover nearby categories (food, fuel, ATMs, transit stops, etc.) via Overpass API
-- Turn-by-turn directions with maneuver icons and step list via OSRM
-- Multi-mode routing (driving / walking / cycling)
-- Saved places store, kept on device only
-- Handles `geo:` URIs from other apps
-- Location-aware search results (queries nearby coordinates)
-- On-device voice guidance for turn-by-turn navigation (offline text-to-speech)
-- Google Maps-style account button: tap your profile photo in the search bar to open settings
-- Settings for voice guidance, distance units (auto/km/miles) and theme, plus one-tap search history clearing
-- Profile photo is picked from your gallery and saved locally only
-- Proper `User-Agent` header for OpenStreetMap API set of tools etiquette
-- Material design 3 with adaptive navigation, dark & light mode support
-- Minimum Android 12 (API 31), targeting API 37
+- Offline-friendly vector maps via MapLibre
+- Place search from Photon, reverse geocoding from Nominatim
+- Nearby food, fuel, ATMs, transit and more through Overpass
+- Turn-by-turn directions with maneuver icons and a step list via OSRM
+- Driving, walking, or cycling
+- Saved places stay on your device only
+- Opens `geo:` links from other apps
+- Search results that know where you are
+- On-device voice guidance, so it can still tell you where to go when you're offline
+- A profile button in the search bar that opens settings, Google Maps style
+- Voice, distance units (auto/km/miles), theme, and one-tap history clearing
+- Profile photo picked from your gallery and saved locally only
+- A proper `User-Agent`, so we stay polite to the OSM tools
+- Material 3 with adaptive navigation, dark and light
+- Minimum Android 12 (API 31), targeting 37
 - No API keys, no accounts, no analytics, no tracking
 - etc.
 
-## Under-the-hood services
+---
 
-| Service | Purpose |
+## Technical Stack
+
+- **UI:** Jetpack Compose with Material 3
+- **Maps:** MapLibre
+- **Network:** OkHttp
+- **Services:** Photon, Nominatim, Overpass and OSRM
+- **Language:** Kotlin
+- **Build:** Gradle (Kotlin DSL)
+
+---
+
+## Services
+
+| Service | What it does |
 | --- | --- |
 | [Photon](https://photon.komoot.io/) | Place search |
 | [Nominatim](https://nominatim.openstreetmap.org/) | Reverse geocoding |
@@ -73,14 +61,58 @@ echo "sdk.dir=$HOME/Android/Sdk" > local.properties
 | [OSRM](https://routing.openstreetmap.de/) | Routing |
 | [MapLibre](https://maplibre.org/) | Map rendering |
 
-All free, public, and key-free, which is what keeps Graphyte privacy-respecting by design.
+All free, public, and key-free, which is what keeps Graphyte privacy-friendly by design.
+
+---
+
+## Building
+
+You'll need Android SDK 37+ (or Android Studio) and Java 17+.
+
+### In Android Studio
+
+1. Clone the repo and open it in Android Studio.
+2. Connect a device or start an emulator, then hit **Run**.
+
+### From the command line
+
+```bash
+git clone https://github.com/rynekryz/graphyte.git
+cd graphyte
+./gradlew build
+```
+
+APK: `app/build/outputs/apk/debug/app-debug.apk`
+
+### sdkmanager only (no Android Studio)
+
+```bash
+sdkmanager "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+echo "sdk.dir=$HOME/Android/Sdk" > local.properties
+./gradlew build
+```
+
+---
+
+## Project Structure
+
+```
+Graphyte/
+└── app/src/main/kotlin/com/rynekryz/graphyte/
+    ├── MainActivity.kt
+    ├── data/
+    ├── ui/
+    └── util/
+```
+
+---
 
 ## License
 
-Licensed under GPL-3.0. See [LICENSE](LICENSE) for details.
+Licensed under GPL-3.0. See [LICENSE](LICENSE).
 
 <div align="center">
-<strong>Made by Ryne</strong>
+<strong>Made with ♥︎ by Ryne</strong>
 </div>
 <div align="center">
   <a href="https://discord.gg/YKhWXXhKmC"><img src="assets/badges/discord.svg" alt="Discord"/></a>
